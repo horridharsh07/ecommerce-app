@@ -2,6 +2,7 @@ import { getProducts, getCategories, type Product, type Category } from "@/lib/a
 import { getProxyImageUrl } from "@/lib/utils";
 import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
+import { ExternalLink } from "lucide-react";
 
 export default async function Shop({
   searchParams,
@@ -35,23 +36,29 @@ export default async function Shop({
             </p>
           </div>
 
-          {/* Dynamic Category Filters from API */}
-          <div className="flex flex-wrap gap-6 text-xs font-sans uppercase tracking-[0.15em] text-primary/80">
-            <Link
-              href="/shop"
-              className={`pb-1 transition-colors ${!activeCategory ? "text-foreground border-b border-foreground" : "hover:text-foreground"}`}
-            >
-              All
-            </Link>
-            {categories.map((cat) => (
+          {/* Dynamic Category Filters from API & Meesho Link */}
+          <div className="flex flex-col items-end gap-3">
+            <div className="flex flex-wrap gap-6 text-xs font-sans uppercase tracking-[0.15em] text-primary/80">
               <Link
-                key={cat.id}
-                href={`/shop?category=${cat.slug}`}
-                className={`pb-1 transition-colors ${activeCategory === cat.slug ? "text-foreground border-b border-foreground" : "hover:text-foreground"}`}
+                href="/shop"
+                className={`pb-1 transition-colors ${!activeCategory ? "text-foreground border-b border-foreground" : "hover:text-foreground"}`}
               >
-                {cat.name}
+                All
               </Link>
-            ))}
+              {categories.map((cat) => (
+                <Link
+                  key={cat.id}
+                  href={`/shop?category=${cat.slug}`}
+                  className={`pb-1 transition-colors ${activeCategory === cat.slug ? "text-foreground border-b border-foreground" : "hover:text-foreground"}`}
+                >
+                  {cat.name}
+                </Link>
+              ))}
+            </div>
+            
+            <a href="https://meesho.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-[10px] font-sans uppercase tracking-[0.2em] text-foreground/40 hover:text-primary transition-colors mt-2">
+              Available on Meesho <ExternalLink size={12} />
+            </a>
           </div>
         </div>
 
@@ -59,7 +66,7 @@ export default async function Shop({
         {data.products.length === 0 ? (
           <p className="font-sans text-primary text-center py-24 italic">No candles found in this collection yet.</p>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16 justify-items-center">
             {data.products.map((product) => (
               <ProductCard
                 key={product.id}

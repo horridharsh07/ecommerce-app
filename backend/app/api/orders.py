@@ -6,6 +6,15 @@ from app.models.domain import Order, OrderItem, Product, DiscountCode, OrderStat
 from app.schemas import OrderCreate, OrderResponse, OrderStatusUpdate
 from typing import List
 from datetime import datetime
+import razorpay
+import os
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID", "rzp_test_dummykey123")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET", "dummysecret123")
+try:
+    razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+except Exception:
+    razorpay_client = None
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -60,6 +69,18 @@ def create_order(
     )
     db.add(order)
     db.flush()  # get order.id before adding items
+
+    # Create Razorpay Order
+    if razorpay_client:
+        try:
+            rzp_order = razorpay_client.order.create({
+                "amount": int(order.total_amount * 100),
+                "currency": "INR",
+                "receipt": f"order_rcptid_{order.id}"
+            })
+            order.razorpay_order_id = rzp_order.get("id")
+        except Exception as e:
+            print("Razorpay Error:", e)
 
     # 4. Create order items and deduct stock
     for product, qty in order_items:

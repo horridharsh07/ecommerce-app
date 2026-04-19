@@ -1,8 +1,10 @@
 "use client";
 import { useCart } from "@/context/CartContext";
+import { useRouter } from "next/navigation";
 
 export default function CartDrawer() {
     const { isOpen, setIsOpen, items, removeFromCart, total } = useCart();
+    const router = useRouter();
     
     if (!isOpen) return null;
 
@@ -43,7 +45,10 @@ export default function CartDrawer() {
                             <span className="font-sans uppercase tracking-[0.15em] text-sm text-foreground/70">Subtotal</span>
                             <span className="font-serif text-2xl text-foreground">₹{total.toLocaleString('en-IN')}</span>
                         </div>
-                        <button className="w-full bg-foreground text-background py-5 font-sans uppercase tracking-[0.2em] text-xs hover:bg-primary transition-colors">
+                        <button 
+                            onClick={() => { setIsOpen(false); router.push('/checkout'); }}
+                            className="w-full bg-foreground text-background py-5 font-sans uppercase tracking-[0.2em] text-xs hover:bg-primary transition-colors"
+                        >
                             Checkout Securely
                         </button>
                     </div>

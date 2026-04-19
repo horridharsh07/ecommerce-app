@@ -1,6 +1,7 @@
 import { getProduct, getProductReviews } from "@/lib/api";
 import { getProxyImageUrl } from "@/lib/utils";
 import AddToCartButton from "@/components/checkout/AddToCartButton";
+import ReviewForm from "@/components/product/ReviewForm";
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -97,11 +98,15 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
             )}
           </div>
 
+          <div className="mt-16 pt-12 border-t border-foreground/10">
+            <ReviewForm productId={product.id} />
+          </div>
+
           {/* Reviews */}
           {reviews.length > 0 && (
-            <div className="mt-16 border-t border-foreground/10 pt-12">
+            <div className="mt-4">
               <h3 className="font-sans uppercase tracking-[0.2em] text-xs font-bold text-foreground mb-8">
-                Reviews ({reviews.length})
+                Customer Reviews ({reviews.length})
               </h3>
               <div className="space-y-6">
                 {reviews.map((review) => (

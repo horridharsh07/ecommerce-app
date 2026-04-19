@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useContext, useState, ReactNode } from "react";
 import { Product } from "@/components/product/ProductCard";
+import toast from "react-hot-toast";
 
 interface CartItem extends Product {
     quantity: number;
@@ -10,6 +11,7 @@ interface CartContextType {
     items: CartItem[];
     addToCart: (product: Product) => void;
     removeFromCart: (id: string) => void;
+    clearCart: () => void;
     total: number;
     isOpen: boolean;
     setIsOpen: (isOpen: boolean) => void;
@@ -29,6 +31,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
             }
             return [...prev, { ...product, quantity: 1 }];
         });
+        toast.success(`ADDED ${product.name}`);
         setIsOpen(true); // Open drawer automatically on add
     };
 
@@ -36,10 +39,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setItems(prev => prev.filter(item => item.id !== id));
     };
 
+    const clearCart = () => setItems([]);
+
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     return (
-        <CartContext.Provider value={{ items, addToCart, removeFromCart, total, isOpen, setIsOpen }}>
+        <CartContext.Provider value={{ items, addToCart, removeFromCart, clearCart, total, isOpen, setIsOpen }}>
             {children}
         </CartContext.Provider>
     );

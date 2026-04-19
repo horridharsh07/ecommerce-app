@@ -1,8 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 
 from app.core.database import engine, Base
-from app.api import auth, products, categories, orders, reviews, discounts, analytics, proxy
+from app.api import auth, products, categories, orders, reviews, discounts, analytics, proxy, upload
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -36,6 +38,11 @@ app.include_router(reviews.router)
 app.include_router(discounts.router)
 app.include_router(analytics.router)
 app.include_router(proxy.router)
+app.include_router(upload.router)
+
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+os.makedirs(static_dir, exist_ok=True)
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
 @app.get("/", tags=["health"])
