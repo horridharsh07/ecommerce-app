@@ -20,14 +20,7 @@
   --font-serif: var(--font-playfair), "Playfair Display", serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #252321;
-    --foreground: #eae6e0;
-    --primary: #c2b6a9;
-    --secondary: #3b3734;
-  }
-}
+
 
 body {
   background: var(--background);
