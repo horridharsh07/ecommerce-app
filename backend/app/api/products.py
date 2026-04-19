@@ -1,13 +1,13 @@
 import re
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 from app.core.database import get_db
 from app.core.security import require_admin
-from app.models.domain import Product, Category
+from app.models.domain import Product, Category, ProductMedia
 from app.schemas import (
     ProductCreate, ProductUpdate, ProductResponse, ProductListResponse
 )
-from typing import Optional
+from typing import Optional, List
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
@@ -35,7 +35,7 @@ def list_products(
 
     total = query.count()
     products = (
-        query.options(joinedload(Product.category))
+        query.options(joinedload(Product.category), selectinload(Product.media))
         .order_by(Product.created_at.desc())
         .offset((page - 1) * per_page)
         .limit(per_page)
@@ -47,11 +47,25 @@ def list_products(
     )
 
 
+@router.get("/featured", response_model=List[ProductResponse])
+def list_featured(db: Session = Depends(get_db)):
+    """Return products marked as featured for the home page."""
+    products = (
+        db.query(Product)
+        .filter(Product.is_active == True, Product.is_featured == True)
+        .options(joinedload(Product.category), selectinload(Product.media))
+        .order_by(Product.created_at.desc())
+        .limit(8)
+        .all()
+    )
+    return products
+
+
 @router.get("/{product_id}", response_model=ProductResponse)
 def get_product(product_id: int, db: Session = Depends(get_db)):
     product = (
         db.query(Product)
-        .options(joinedload(Product.category))
+        .options(joinedload(Product.category), selectinload(Product.media))
         .filter(Product.id == product_id)
         .first()
     )
@@ -72,8 +86,21 @@ def create_product(
     if db.query(Product).filter(Product.slug == slug).first():
         raise HTTPException(status_code=409, detail="Product with this name already exists")
 
-    product = Product(**data.model_dump(), slug=slug)
+    product_data = data.model_dump(exclude={"media_items"})
+    product = Product(**product_data, slug=slug)
     db.add(product)
+    db.flush()
+
+    # Create media entries if provided
+    if data.media_items:
+        for i, item in enumerate(data.media_items):
+            db.add(ProductMedia(
+                product_id=product.id,
+                url=item.url,
+                media_type=item.media_type,
+                sort_order=i,
+            ))
+
     db.commit()
     db.refresh(product)
     return product

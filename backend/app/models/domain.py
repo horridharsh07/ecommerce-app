@@ -56,8 +56,8 @@ class Category(Base):
     __tablename__ = "categories"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), unique=True, nullable=False)       # e.g. "Woody"
-    slug = Column(String(100), unique=True, nullable=False)       # e.g. "woody"
+    name = Column(String(100), unique=True, nullable=False)
+    slug = Column(String(100), unique=True, nullable=False)
     description = Column(Text, nullable=True)
 
     products = relationship("Product", back_populates="category")
@@ -75,9 +75,12 @@ class Product(Base):
     slug = Column(String(255), unique=True, nullable=False)
     description = Column(Text, nullable=False)
     price = Column(Float, nullable=False)
+    compare_at_price = Column(Float, nullable=True) # Original price before discount
+    discount_percent = Column(Float, nullable=True) # E.g., 20.0 for 20% off
     image_url = Column(String(512), nullable=True)
     stock = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
+    is_featured = Column(Boolean, default=False, nullable=False)
 
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
 
@@ -85,9 +88,9 @@ class Product(Base):
     top_notes = Column(String(255), nullable=True)
     mid_notes = Column(String(255), nullable=True)
     base_notes = Column(String(255), nullable=True)
-    burn_time = Column(String(50), nullable=True)              # e.g. "~60 hours"
-    wax_type = Column(String(100), nullable=True)              # e.g. "Coconut Soy"
-    weight = Column(String(50), nullable=True)                 # e.g. "300g"
+    burn_time = Column(String(50), nullable=True)
+    wax_type = Column(String(100), nullable=True)
+    weight = Column(String(50), nullable=True)
 
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -95,11 +98,29 @@ class Product(Base):
     category = relationship("Category", back_populates="products")
     order_items = relationship("OrderItem", back_populates="product")
     reviews = relationship("Review", back_populates="product", cascade="all, delete-orphan")
+    media = relationship("ProductMedia", back_populates="product", cascade="all, delete-orphan")
 
     __table_args__ = (
         CheckConstraint("price > 0", name="ck_product_price_positive"),
         CheckConstraint("stock >= 0", name="ck_product_stock_non_negative"),
     )
+
+
+# ---------------------------------------------------------------------------
+# ProductMedia
+# ---------------------------------------------------------------------------
+
+class ProductMedia(Base):
+    __tablename__ = "product_media"
+
+    id = Column(Integer, primary_key=True, index=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False)
+    url = Column(String(512), nullable=False)
+    media_type = Column(String(10), nullable=False, default="image")
+    sort_order = Column(Integer, default=0, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    product = relationship("Product", back_populates="media")
 
 
 # ---------------------------------------------------------------------------
@@ -184,11 +205,10 @@ class Review(Base):
 
 class DiscountCode(Base):
     __tablename__ = "discount_codes"
-
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(50), unique=True, nullable=False, index=True)
-    discount_percent = Column(Float, nullable=False)             # e.g. 10.0 for 10%
-    max_uses = Column(Integer, nullable=True)                    # null = unlimited
+    discount_percent = Column(Float, nullable=False)
+    max_uses = Column(Integer, nullable=True)
     times_used = Column(Integer, default=0, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
     valid_from = Column(DateTime, nullable=False)
@@ -199,3 +219,10 @@ class DiscountCode(Base):
         CheckConstraint("discount_percent > 0 AND discount_percent <= 100",
                         name="ck_discount_percent_range"),
     )
+
+class SiteContent(Base):
+    __tablename__ = "site_content"
+    id = Column(Integer, primary_key=True, index=True)
+    section = Column(String(50), nullable=False)
+    key = Column(String(100), unique=True, index=True, nullable=False)
+    value = Column(Text, nullable=False)

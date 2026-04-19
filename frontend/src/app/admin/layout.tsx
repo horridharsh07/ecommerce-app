@@ -44,6 +44,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <Link href="/admin/marketing" className="flex items-center gap-3 text-foreground/70 hover:text-primary transition-colors py-2">
             <Megaphone size={16} /> Marketing
           </Link>
+          <Link href="/admin/content" className="flex items-center gap-3 text-foreground/70 hover:text-primary transition-colors py-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-app-window"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M10 4v4"/><path d="M2 8h20"/><path d="M6 4v4"/></svg> Content
+          </Link>
         </nav>
         
         <button onClick={handleLogout} className="flex items-center gap-3 text-red-500 hover:text-red-600 transition-colors py-2 font-sans uppercase tracking-[0.15em] text-xs">

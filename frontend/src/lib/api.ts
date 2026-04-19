@@ -1,6 +1,6 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-// ─── Types (mirrors the API contract) ───
+// ─── Types ───
 
 export interface Category {
   id: number;
@@ -9,15 +9,25 @@ export interface Category {
   description: string | null;
 }
 
+export interface ProductMedia {
+  id: number;
+  url: string;
+  media_type: string;
+  sort_order: number;
+}
+
 export interface Product {
   id: number;
   name: string;
   slug: string;
   description: string;
   price: number;
+  compare_at_price: number | null;
+  discount_percent: number | null;
   image_url: string | null;
   stock: number;
   is_active: boolean;
+  is_featured: boolean;
   category_id: number | null;
   category: Category | null;
   top_notes: string | null;
@@ -26,6 +36,7 @@ export interface Product {
   burn_time: string | null;
   wax_type: string | null;
   weight: string | null;
+  media: ProductMedia[];
   created_at: string;
 }
 
@@ -55,7 +66,6 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    // Next.js ISR: revalidate every 60 seconds
     next: { revalidate: 60 },
   } as any);
 
@@ -89,10 +99,24 @@ export async function getProduct(id: number): Promise<Product> {
   return apiFetch<Product>(`/api/products/${id}`);
 }
 
+export async function getFeaturedProducts(): Promise<Product[]> {
+  return apiFetch<Product[]>("/api/products/featured");
+}
+
 export async function getCategories(): Promise<Category[]> {
   return apiFetch<Category[]>("/api/categories");
 }
 
 export async function getProductReviews(productId: number): Promise<Review[]> {
   return apiFetch<Review[]>(`/api/reviews/product/${productId}`);
+}
+
+export async function getSiteContent(): Promise<Record<string, string>> {
+  try {
+    const res = await fetch(`${API_BASE}/api/content/`, { next: { tags: ["content"], revalidate: 60 } });
+    if (!res.ok) return {};
+    return res.json();
+  } catch {
+    return {};
+  }
 }

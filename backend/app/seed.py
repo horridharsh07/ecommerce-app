@@ -4,9 +4,21 @@ Run with: python -m app.seed
 """
 from app.core.database import SessionLocal, engine, Base
 from app.core.security import hash_password
-from app.models.domain import User, Category, Product
+from app.models.domain import User, Category, Product, ProductMedia
 
 Base.metadata.create_all(bind=engine)
+
+# Migrate existing tables
+from sqlalchemy import inspect as _sa_inspect, text as _sa_text
+_insp = _sa_inspect(engine)
+if _insp.has_table("products"):
+    _cols = [c["name"] for c in _insp.get_columns("products")]
+    if "is_featured" not in _cols:
+        with engine.connect() as _conn:
+            _conn.execute(_sa_text(
+                "ALTER TABLE products ADD COLUMN is_featured BOOLEAN DEFAULT 0 NOT NULL"
+            ))
+            _conn.commit()
 
 db = SessionLocal()
 
@@ -143,6 +155,30 @@ for p in PRODUCTS:
     if not db.query(Product).filter(Product.slug == p["slug"]).first():
         db.add(Product(**p))
         print(f"  ✅ Product: {p['name']}")
+
+db.commit()
+
+# --- Featured Products ---
+for slug in ["santal-blush", "cloud-nine", "smoked-ember", "golden-hour"]:
+    prod = db.query(Product).filter(Product.slug == slug).first()
+    if prod and not prod.is_featured:
+        prod.is_featured = True
+        print(f"  ⭐ Featured: {prod.name}")
+
+db.commit()
+
+# --- Product Media (create entries from existing image_url) ---
+for product in db.query(Product).all():
+    if product.image_url and not db.query(ProductMedia).filter(
+        ProductMedia.product_id == product.id
+    ).first():
+        db.add(ProductMedia(
+            product_id=product.id,
+            url=product.image_url,
+            media_type="image",
+            sort_order=0,
+        ))
+        print(f"  📷 Media: {product.name}")
 
 db.commit()
 db.close()

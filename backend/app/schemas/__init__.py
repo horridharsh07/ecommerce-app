@@ -18,6 +18,7 @@ class UserRegister(BaseModel):
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
+    admin_key: Optional[str] = None
 
 
 class UserResponse(BaseModel):
@@ -60,10 +61,17 @@ class CategoryResponse(BaseModel):
 # Product Schemas
 # ===================================================================
 
+class MediaItem(BaseModel):
+    url: str
+    media_type: str = "image"
+
+
 class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=255)
     description: str = Field(min_length=1)
     price: float = Field(gt=0)
+    compare_at_price: Optional[float] = None
+    discount_percent: Optional[float] = None
     image_url: Optional[str] = None
     stock: int = Field(ge=0, default=0)
     category_id: Optional[int] = None
@@ -73,22 +81,37 @@ class ProductCreate(BaseModel):
     burn_time: Optional[str] = None
     wax_type: Optional[str] = None
     weight: Optional[str] = None
+    is_featured: bool = False
+    media_items: Optional[List[MediaItem]] = None
 
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=255)
     description: Optional[str] = None
     price: Optional[float] = Field(None, gt=0)
+    compare_at_price: Optional[float] = None
+    discount_percent: Optional[float] = None
     image_url: Optional[str] = None
     stock: Optional[int] = Field(None, ge=0)
     category_id: Optional[int] = None
     is_active: Optional[bool] = None
+    is_featured: Optional[bool] = None
     top_notes: Optional[str] = None
     mid_notes: Optional[str] = None
     base_notes: Optional[str] = None
     burn_time: Optional[str] = None
     wax_type: Optional[str] = None
     weight: Optional[str] = None
+
+
+class ProductMediaResponse(BaseModel):
+    id: int
+    url: str
+    media_type: str
+    sort_order: int
+
+    class Config:
+        from_attributes = True
 
 
 class ProductResponse(BaseModel):
@@ -97,9 +120,12 @@ class ProductResponse(BaseModel):
     slug: str
     description: str
     price: float
+    compare_at_price: Optional[float] = None
+    discount_percent: Optional[float] = None
     image_url: Optional[str] = None
     stock: int
     is_active: bool
+    is_featured: bool = False
     category_id: Optional[int] = None
     category: Optional[CategoryResponse] = None
     top_notes: Optional[str] = None
@@ -108,6 +134,7 @@ class ProductResponse(BaseModel):
     burn_time: Optional[str] = None
     wax_type: Optional[str] = None
     weight: Optional[str] = None
+    media: List[ProductMediaResponse] = []
     created_at: datetime
 
     class Config:
@@ -248,10 +275,10 @@ class DashboardStats(BaseModel):
     total_users: int
     total_products: int
     pending_orders: int
-    low_stock_products: int          # stock < 5
+    low_stock_products: int
 
 
 class SalesDataPoint(BaseModel):
-    date: str                         # "2026-04-19"
+    date: str
     revenue: float
     order_count: int
