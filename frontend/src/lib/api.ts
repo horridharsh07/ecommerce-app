@@ -113,7 +113,7 @@ export async function getProductReviews(productId: number): Promise<Review[]> {
 
 export async function getSiteContent(): Promise<Record<string, string>> {
   try {
-    const res = await fetch(`${API_BASE}/api/content/`, { next: { tags: ["content"], revalidate: 60 } });
+    const res = await fetch(`${API_BASE}/api/content/`, { cache: "no-store" });
     if (!res.ok) return {};
     return res.json();
   } catch {

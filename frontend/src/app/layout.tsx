@@ -27,23 +27,14 @@ export const metadata: Metadata = {
   }
 };
 
-import { getSiteContent } from "@/lib/api";
-
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const content = await getSiteContent();
-
-  const customStyle: React.CSSProperties = {};
-  if (content.global_bg) customStyle.backgroundColor = content.global_bg;
-  if (content.global_text) customStyle.color = content.global_text;
-
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`} style={customStyle}>
-        {content.custom_css && <style dangerouslySetInnerHTML={{ __html: content.custom_css }} />}
+      <body className={`${inter.variable} ${playfair.variable} antialiased font-sans bg-background text-foreground`}>
         <AuthProvider>
           <CartProvider>
             <Navbar />
