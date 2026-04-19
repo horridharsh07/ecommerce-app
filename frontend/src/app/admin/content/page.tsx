@@ -8,6 +8,7 @@ export default function AdminContent() {
   const { token } = useAuth();
   const [content, setContent] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
   useEffect(() => { if (token) fetchData(); }, [token]);
@@ -42,7 +43,7 @@ export default function AdminContent() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const items = Object.entries(content).map(([key, value]) => ({ key, value }));
+      const items = Object.entries(content).map(([key, value]) => ({ key, value: String(value || "") }));
       const res = await fetch(`${API_BASE}/api/content/`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -54,6 +55,30 @@ export default function AdminContent() {
       toast.error(err.message);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    setIsUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch(`${API_BASE}/api/upload/`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData,
+      });
+      if (!res.ok) throw new Error("Upload failed");
+      const upData = await res.json();
+      
+      const fileUrl = `${API_BASE}${upData.url}`;
+      handleChange("ritual_embed_url", fileUrl);
+      toast.success("File Uploaded! Click Save below.");
+    } catch (err: any) {
+      toast.error(err.message);
+    } finally {
+      setIsUploading(false);
+      e.target.value = ""; // reset input
     }
   };
 
@@ -111,11 +136,20 @@ export default function AdminContent() {
               <label htmlFor="show_video" className="text-xs tracking-widest text-foreground/80">Show "The Ritual" Media Section on Landing Page</label>
             </div>
             {content["show_video"] !== "false" && (
-              <div>
-                <label className="text-xs tracking-widest text-foreground/80 mb-2 block">Ritual Media URL (Instagram Embed URL, Direct .mp4, or Image Link)</label>
-                <input type="text" placeholder="https://www.instagram.com/reel/.../embed" value={content["ritual_embed_url"] || ""} onChange={(e) => handleChange("ritual_embed_url", e.target.value)}
-                  className="w-full border-b border-foreground/20 py-2 bg-transparent focus:outline-none focus:border-foreground transition-colors" />
-                <p className="text-[10px] text-primary/60 mt-2">Supports Instagram Embeds, direct video links (.mp4), and direct image links (.jpg, .png).</p>
+              <div className="flex flex-col gap-2">
+                <label className="text-xs tracking-widest text-foreground/80 block">Ritual Media URL</label>
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                  <input type="text" placeholder="https://www.instagram.com/reel/.../embed" value={content["ritual_embed_url"] || ""} onChange={(e) => handleChange("ritual_embed_url", e.target.value)}
+                    className="w-full sm:flex-1 border-b border-foreground/20 py-2 bg-transparent focus:outline-none focus:border-foreground transition-colors" />
+                  
+                  <div className="relative">
+                    <input type="file" id="ritual_upload" accept="image/*,video/*" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+                    <label htmlFor="ritual_upload" className={`cursor-pointer px-4 py-2 border border-foreground/20 text-xs font-sans uppercase tracking-[0.1em] hover:bg-foreground hover:text-background transition-colors whitespace-nowrap ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                      {isUploading ? "Uploading..." : "Upload File"}
+                    </label>
+                  </div>
+                </div>
+                <p className="text-[10px] text-primary/60 mt-1">Supports Instagram Embeds, or direct Cloud/Drive uploads (.mp4, .jpg).</p>
               </div>
             )}
           </div>
