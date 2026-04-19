@@ -34,7 +34,12 @@ export default function Login() {
         body: JSON.stringify(payload),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Login failed");
+      if (!res.ok) {
+        let msg = "Login failed";
+        if (typeof data.detail === "string") msg = data.detail;
+        else if (Array.isArray(data.detail)) msg = data.detail[0].msg;
+        throw new Error(msg);
+      }
 
       const meRes = await fetch(`${API_BASE}/api/auth/me`, {
         headers: { Authorization: `Bearer ${data.access_token}` },
@@ -62,12 +67,12 @@ export default function Login() {
         <form onSubmit={handleSubmit} className="flex flex-col gap-6">
           <input
             type="email" placeholder="EMAIL ADDRESS" required
-            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors uppercase tracking-widest placeholder:text-foreground/30"
+            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors tracking-widest placeholder:text-foreground/30 placeholder:uppercase"
             value={email} onChange={(e) => setEmail(e.target.value)}
           />
           <input
             type="password" placeholder="PASSWORD" required
-            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors uppercase tracking-widest placeholder:text-foreground/30"
+            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors tracking-widest placeholder:text-foreground/30 placeholder:uppercase"
             value={password} onChange={(e) => setPassword(e.target.value)}
           />
           {showAdminKey && (

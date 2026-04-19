@@ -26,7 +26,12 @@ export default function Register() {
         body: JSON.stringify({ email, password, full_name: fullName }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || "Registration failed");
+      if (!res.ok) {
+        let msg = "Registration failed";
+        if (typeof data.detail === "string") msg = data.detail;
+        else if (Array.isArray(data.detail)) msg = data.detail[0].msg;
+        throw new Error(msg);
+      }
 
       toast.success("ACCOUNT CREATED");
       router.push("/login");
@@ -50,10 +55,10 @@ export default function Register() {
             className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors uppercase tracking-widest placeholder:text-foreground/30"
             value={fullName} onChange={(e) => setFullName(e.target.value)} />
           <input type="email" placeholder="EMAIL ADDRESS" required
-            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors uppercase tracking-widest placeholder:text-foreground/30"
+            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors tracking-widest placeholder:text-foreground/30 placeholder:uppercase"
             value={email} onChange={(e) => setEmail(e.target.value)} />
           <input type="password" placeholder="PASSWORD" required minLength={8}
-            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors uppercase tracking-widest placeholder:text-foreground/30"
+            className="border-b border-foreground/20 py-3 bg-transparent text-sm focus:outline-none focus:border-foreground transition-colors tracking-widest placeholder:text-foreground/30 placeholder:uppercase"
             value={password} onChange={(e) => setPassword(e.target.value)} />
           <button type="submit" disabled={isLoading}
             className="bg-foreground text-background py-4 text-xs font-sans uppercase tracking-[0.2em] mt-4 hover:bg-foreground/90 transition-colors btn-press disabled:opacity-50">
