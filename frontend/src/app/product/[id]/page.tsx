@@ -1,4 +1,5 @@
 import { getProduct, getProductReviews } from "@/lib/api";
+import { getProxyImageUrl } from "@/lib/utils";
 import AddToCartButton from "@/components/checkout/AddToCartButton";
 
 export default async function ProductDetail({ params }: { params: Promise<{ id: string }> }) {
@@ -18,7 +19,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
     id: String(product.id),
     name: product.name,
     price: product.price,
-    image: product.image_url || "",
+    image: getProxyImageUrl(product.image_url) || "",
     description: product.description,
     notes: notesString,
   };
@@ -31,7 +32,7 @@ export default async function ProductDetail({ params }: { params: Promise<{ id: 
         <div className="w-full md:w-1/2 aspect-[4/5] bg-secondary flex items-center justify-center relative overflow-hidden">
           <div className="absolute inset-0 bg-primary/5 z-10" />
           {product.image_url ? (
-            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+            <img src={getProxyImageUrl(product.image_url)!} alt={product.name} className="w-full h-full object-cover" />
           ) : (
             <span className="text-3xl font-serif text-primary/40 tracking-widest">LUMA</span>
           )}

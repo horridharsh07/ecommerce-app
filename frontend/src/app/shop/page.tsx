@@ -1,4 +1,5 @@
 import { getProducts, getCategories, type Product, type Category } from "@/lib/api";
+import { getProxyImageUrl } from "@/lib/utils";
 import ProductCard from "@/components/product/ProductCard";
 import Link from "next/link";
 
@@ -66,7 +67,7 @@ export default async function Shop({
                   id: String(product.id),
                   name: product.name,
                   price: product.price,
-                  image: product.image_url || "",
+                  image: getProxyImageUrl(product.image_url) || "",
                   description: product.description,
                   notes: [product.top_notes, product.mid_notes, product.base_notes].filter(Boolean).join(" — "),
                 }}

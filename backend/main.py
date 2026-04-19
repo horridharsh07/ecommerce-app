@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.database import engine, Base
-from app.api import auth, products, categories, orders, reviews, discounts, analytics
+from app.api import auth, products, categories, orders, reviews, discounts, analytics, proxy
 
 # Create all tables
 Base.metadata.create_all(bind=engine)
@@ -35,6 +35,7 @@ app.include_router(orders.router)
 app.include_router(reviews.router)
 app.include_router(discounts.router)
 app.include_router(analytics.router)
+app.include_router(proxy.router)
 
 
 @app.get("/", tags=["health"])
