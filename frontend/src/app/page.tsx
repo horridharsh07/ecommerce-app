@@ -137,22 +137,36 @@ export default async function Home() {
       )}
 
       {/* ─── The Ritual (Video) ─── */}
-      <section className="py-24 px-8 bg-background border-t border-foreground/5">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-serif text-3xl md:text-5xl font-light text-foreground mb-4">The Ritual</h2>
-          <p className="font-sans text-primary mb-12 text-sm tracking-wide">
-            Experience the pour, the wick, the glow.
-          </p>
-          <div className="aspect-[9/16] md:aspect-video w-full max-w-2xl mx-auto overflow-hidden bg-secondary shadow-lg relative rounded-md">
-            <iframe
-              src="https://www.instagram.com/reel/DU_VuD2klkT/embed"
-              className="w-full h-full border-0 absolute inset-0"
-              allowFullScreen
-              scrolling="no"
-            />
-          </div>
-        </div>
-      </section>
+      {content["show_video"] !== "false" && (() => {
+        const mediaUrl = content["ritual_embed_url"] || "https://www.instagram.com/reel/DU_VuD2klkT/embed";
+        const isVideo = mediaUrl.match(/\.(mp4|webm|ogg)$/i);
+        const isImage = mediaUrl.match(/\.(jpeg|jpg|gif|png|webp)$/i);
+        
+        return (
+          <section className="py-24 px-8 bg-background border-t border-foreground/5">
+            <div className="max-w-4xl mx-auto text-center">
+              <h2 className="font-serif text-3xl md:text-5xl font-light text-foreground mb-4">The Ritual</h2>
+              <p className="font-sans text-primary mb-12 text-sm tracking-wide">
+                Experience the pour, the wick, the glow.
+              </p>
+              <div className="aspect-[9/16] md:aspect-video w-full max-w-2xl mx-auto overflow-hidden bg-secondary shadow-lg relative rounded-md">
+                {isVideo ? (
+                  <video src={mediaUrl} autoPlay loop muted playsInline className="w-full h-full object-cover absolute inset-0" />
+                ) : isImage ? (
+                  <img src={mediaUrl} alt="Luma Ritual" className="w-full h-full object-cover absolute inset-0" />
+                ) : (
+                  <iframe
+                    src={mediaUrl}
+                    className="w-full h-full border-0 absolute inset-0"
+                    allowFullScreen
+                    scrolling="no"
+                  />
+                )}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
 
       {/* ─── CTA Footer ─── */}
       <section className="py-24 px-8 bg-secondary/20 border-t border-foreground/5 text-center">
