@@ -8,7 +8,9 @@ export default function Navbar() {
   const { items, setIsOpen } = useCart();
   const { user, logout } = useAuth();
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
@@ -17,77 +19,103 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav
-      className={`w-full py-5 px-8 flex justify-between items-center fixed top-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? "bg-background/95 backdrop-blur-xl shadow-sm border-b border-foreground/5"
-          : "bg-transparent"
-      }`}
-    >
-      <Link
-        href="/"
-        className="font-serif text-3xl tracking-widest text-foreground flex items-center gap-4 group"
+    <>
+      <nav
+        className={`w-full py-4 md:py-5 px-4 md:px-8 flex justify-between items-center fixed top-0 z-50 transition-all duration-500 ${
+          scrolled
+            ? "bg-background/95 backdrop-blur-xl shadow-sm border-b border-foreground/5"
+            : "bg-transparent"
+        }`}
       >
-        <img
-          src="/logo.jpg"
-          alt="Luma Logo"
-          className="w-10 h-10 rounded-full border border-foreground/10 group-hover:scale-105 transition-transform duration-300"
-        />
-        <span className="group-hover:text-primary transition-colors duration-300">LUMA</span>
-      </Link>
-
-      <div className="flex gap-8 text-xs font-sans uppercase tracking-[0.15em] text-foreground/80 items-center">
+        {/* LOGO */}
         <Link
-          href="/shop"
-          className="hover:text-primary transition-colors duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
+          href="/"
+          className="font-serif text-xl md:text-3xl tracking-widest text-foreground flex items-center gap-2 md:gap-4"
         >
-          Shop
-        </Link>
-        <Link
-          href="/about"
-          className="hover:text-primary transition-colors duration-300 relative after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-[1px] after:bg-primary after:transition-all after:duration-300 hover:after:w-full"
-        >
-          Our Story
+          <img
+            src="/logo.jpg"
+            alt="Luma Logo"
+            className="w-8 h-8 md:w-10 md:h-10 rounded-full border border-foreground/10"
+          />
+          LUMA
         </Link>
 
-        {user ? (
-          <div className="group relative">
-            <button className="hover:text-primary transition-colors duration-300 py-4">ACCOUNT</button>
-            <div className="absolute top-full right-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 translate-y-2 group-hover:translate-y-0 z-50 w-48">
-              <div className="bg-background border border-foreground/10 p-6 flex flex-col gap-4 shadow-xl relative shadow-black/5 rounded-sm">
-                <div className="absolute -top-3 left-0 w-full h-4 bg-transparent" /> {/* Invisible bridge */}
-                {user.is_admin && (
-                  <Link href="/admin" className="hover:text-primary transition-colors duration-300">
-                    Dashboard
-                  </Link>
-                )}
-                <button
-                  onClick={logout}
-                  className="hover:text-primary transition-colors duration-300 text-left"
-                >
-                  Sign Out
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <Link href="/login" className="hover:text-primary transition-colors duration-300">
-            Log In
-          </Link>
-        )}
+        {/* DESKTOP NAV */}
+        <div className="hidden md:flex gap-8 text-xs font-sans uppercase tracking-[0.15em] text-foreground/80 items-center">
+          <Link href="/shop" className="hover:text-primary">Shop</Link>
+          <Link href="/about" className="hover:text-primary">Our Story</Link>
 
-        <button
-          onClick={() => setIsOpen(true)}
-          className="hover:text-primary transition-colors duration-300 btn-press relative"
-        >
-          Cart
-          {cartCount > 0 && (
-            <span className="absolute -top-2 -right-4 bg-foreground text-background text-[9px] w-5 h-5 rounded-full flex items-center justify-center animate-scale-in">
-              {cartCount}
-            </span>
+          {user ? (
+            <button onClick={logout} className="hover:text-primary">
+              Logout
+            </button>
+          ) : (
+            <Link href="/login" className="hover:text-primary">
+              Log In
+            </Link>
           )}
-        </button>
+
+          <button onClick={() => setIsOpen(true)} className="relative">
+            Cart
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-4 bg-foreground text-background text-[9px] w-5 h-5 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* MOBILE RIGHT SIDE */}
+        <div className="flex md:hidden items-center gap-4">
+          {/* CART */}
+          <button onClick={() => setIsOpen(true)} className="relative">
+            🛒
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-3 bg-foreground text-background text-[9px] w-4 h-4 rounded-full flex items-center justify-center">
+                {cartCount}
+              </span>
+            )}
+          </button>
+
+          {/* HAMBURGER */}
+          <button onClick={() => setMenuOpen(true)} className="text-xl">
+            ☰
+          </button>
+        </div>
+      </nav>
+
+      {/* MOBILE MENU */}
+      <div
+        className={`fixed inset-0 bg-background z-50 transform transition-transform duration-500 ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div className="flex justify-between items-center p-6 border-b border-foreground/10">
+          <span className="font-serif text-xl">Menu</span>
+          <button onClick={() => setMenuOpen(false)}>✕</button>
+        </div>
+
+        <div className="flex flex-col gap-6 p-8 text-lg uppercase tracking-wide">
+          <Link href="/shop" onClick={() => setMenuOpen(false)}>Shop</Link>
+          <Link href="/about" onClick={() => setMenuOpen(false)}>Our Story</Link>
+
+          {user ? (
+            <button
+              onClick={() => {
+                logout();
+                setMenuOpen(false);
+              }}
+              className="text-left"
+            >
+              Logout
+            </button>
+          ) : (
+            <Link href="/login" onClick={() => setMenuOpen(false)}>
+              Log In
+            </Link>
+          )}
+        </div>
       </div>
-    </nav>
+    </>
   );
 }
