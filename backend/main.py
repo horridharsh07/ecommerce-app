@@ -32,6 +32,21 @@ def _run_migrations():
 
 _run_migrations()
 
+# Automatically seed the database on startup (especially for ephemeral Render SQLite)
+try:
+    from app.core.database import SessionLocal
+    from app.models.domain import User
+    
+    db_test = SessionLocal()
+    admin_exists = db_test.query(User).filter(User.email == "admin@lumacandles.in").first()
+    db_test.close()
+    
+    if not admin_exists:
+        import app.seed
+        print("Database automatically seeded on startup.")
+except Exception as e:
+    print(f"Warning: Auto-seed failed: {e}")
+
 app = FastAPI(
     title="Luma Candles API",
     description="Production-grade backend for the Luma Candles e-commerce platform",
