@@ -84,18 +84,6 @@ export default function AdminDashboard() {
           );
         })}
       </div>
-
-      <div className="mt-12 p-6 border border-dashed border-foreground/15 bg-secondary/10 animate-fade-in stagger-7">
-        <h3 className="font-sans text-xs uppercase tracking-[0.2em] font-bold text-foreground mb-3">
-          Admin Access Info
-        </h3>
-        <ul className="font-sans text-xs text-foreground/60 space-y-1 list-disc list-inside">
-          <li>Admin panel at <code className="bg-secondary px-1.5 py-0.5 text-foreground">/admin</code> — secured via JWT</li>
-          <li>Only users with <code className="bg-secondary px-1.5 py-0.5 text-foreground">is_admin=true</code> can access</li>
-          <li>Products display on: <strong>Home Page</strong> (featured) and <strong>Shop Page</strong> (all active)</li>
-          <li>Manage products, orders, and promotions from the sidebar</li>
-        </ul>
-      </div>
     </div>
   );
 }

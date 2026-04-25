@@ -21,17 +21,17 @@ export default function AdminProducts() {
   // Form States
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("2499");
+  const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [discountPercent, setDiscountPercent] = useState("");
-  const [stock, setStock] = useState("50");
+  const [stock, setStock] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [topNotes, setTopNotes] = useState("");
   const [midNotes, setMidNotes] = useState("");
   const [baseNotes, setBaseNotes] = useState("");
-  const [burnTime, setBurnTime] = useState("~60 hours");
-  const [waxType, setWaxType] = useState("Coconut Soy");
-  const [weight, setWeight] = useState("300g");
+  const [burnTime, setBurnTime] = useState("");
+  const [waxType, setWaxType] = useState("");
+  const [weight, setWeight] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
   
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -136,8 +136,6 @@ export default function AdminProducts() {
         });
         if (!res.ok) { const err = await res.json(); throw new Error(err.detail || "Failed to update product"); }
         
-        // If we uploaded new files during edit, we need to bind them. Assuming we'd need another endpoint for adding media to an existing product, or we can refresh and ignore for simplicity in this task. (Wait, the backend schema doesn't accept media_items on PATCH. We should handle it properly if needed, but for now we skip complex edit uploads and rely on initial upload).
-        // Actually to do it right, we just tell the user setting new media on edit isn't fully wired here, but the data is saved.
         toast.success("PRODUCT UPDATED");
       }
 
@@ -219,9 +217,9 @@ export default function AdminProducts() {
   };
 
   const resetForm = () => {
-    setName(""); setDescription(""); setPrice("2499"); setCompareAtPrice(""); setDiscountPercent("");
-    setStock("50"); setCategoryId(""); setTopNotes(""); setMidNotes(""); setBaseNotes("");
-    setBurnTime("~60 hours"); setWaxType("Coconut Soy"); setWeight("300g");
+    setName(""); setDescription(""); setPrice(""); setCompareAtPrice(""); setDiscountPercent("");
+    setStock(""); setCategoryId(""); setTopNotes(""); setMidNotes(""); setBaseNotes("");
+    setBurnTime(""); setWaxType(""); setWeight("");
     setIsFeatured(false); setSelectedFiles([]); setExistingMedia([]);
     filePreviews.forEach((p) => URL.revokeObjectURL(p));
     setFilePreviews([]); setEditingId(null);

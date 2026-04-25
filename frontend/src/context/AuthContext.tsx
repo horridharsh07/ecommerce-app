@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const storedToken = localStorage.getItem("luma_token");
     if (storedToken) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setToken(storedToken);
       // Fetch user profile
       const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";

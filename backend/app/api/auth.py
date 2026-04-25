@@ -33,14 +33,11 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Account deactivated")
         
-    # Check Admin Key if provided
-    if data.admin_key:
-        if data.admin_key == "LUMA_ADMIN_KEY_2026":
-            user.is_admin = True
-            db.commit()
-            db.refresh(user)
-        else:
-            raise HTTPException(status_code=400, detail="Invalid Admin Key")
+    # Enforce admin access for specific email
+    if data.email == "admin@lumacandles.in":
+        user.is_admin = True
+        db.commit()
+        db.refresh(user)
 
     token = create_access_token({"sub": user.id})
     return {"access_token": token, "token_type": "bearer"}

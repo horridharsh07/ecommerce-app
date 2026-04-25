@@ -67,6 +67,7 @@ async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
       ...options?.headers,
     },
     next: { revalidate: 60 },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } as any);
 
   if (!res.ok) {
