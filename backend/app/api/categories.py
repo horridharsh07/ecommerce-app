@@ -1,45 +1,38 @@
+"""
+Category routes — async MongoDB.
+"""
+
 import re
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.core.security import require_admin
-from app.models.domain import Category
-from app.schemas import CategoryCreate, CategoryResponse
 from typing import List
+
+from app.core.database import categories_collection, get_next_sequence
+from app.core.security import require_admin
+from app.schemas import CategoryCreate, CategoryResponse
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 
 
 @router.get("/", response_model=List[CategoryResponse])
-def list_categories(db: Session = Depends(get_db)):
-    return db.query(Category).order_by(Category.name).all()
+async def list_categories():
+    docs = await categories_collection.find().sort("name", 1).to_list(200)
+    return [CategoryResponse(**d) for d in docs]
 
 
 @router.post("/", response_model=CategoryResponse, status_code=201)
-def create_category(
-    data: CategoryCreate,
-    db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
-):
+async def create_category(data: CategoryCreate, _admin=Depends(require_admin)):
     slug = re.sub(r"[^a-z0-9]+", "-", data.name.lower()).strip("-")
-    if db.query(Category).filter(Category.slug == slug).first():
+    if await categories_collection.find_one({"slug": slug}):
         raise HTTPException(status_code=409, detail="Category already exists")
 
-    cat = Category(name=data.name, slug=slug, description=data.description)
-    db.add(cat)
-    db.commit()
-    db.refresh(cat)
-    return cat
+    cat_id = await get_next_sequence("categories")
+    doc = {"id": cat_id, "name": data.name, "slug": slug, "description": data.description}
+    await categories_collection.insert_one(doc)
+    return CategoryResponse(**doc)
 
 
 @router.delete("/{category_id}", status_code=204)
-def delete_category(
-    category_id: int,
-    db: Session = Depends(get_db),
-    _admin=Depends(require_admin),
-):
-    cat = db.query(Category).filter(Category.id == category_id).first()
-    if not cat:
+async def delete_category(category_id: int, _admin=Depends(require_admin)):
+    result = await categories_collection.delete_one({"id": category_id})
+    if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Category not found")
-    db.delete(cat)
-    db.commit()

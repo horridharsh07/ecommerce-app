@@ -190,7 +190,6 @@ class OrderCreate(BaseModel):
 
 
 class OrderItemResponse(BaseModel):
-    id: int
     product_id: int
     quantity: int
     price_at_purchase: float

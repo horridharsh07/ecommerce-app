@@ -1,34 +1,46 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.core.database import get_db
-from app.models.domain import SiteContent
-from app.core.security import require_admin
+"""
+Site content routes — async MongoDB.
+"""
+
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import List, Dict
+from typing import List
+
+from app.core.database import site_content_collection, get_next_sequence
+from app.core.security import require_admin
 
 router = APIRouter(prefix="/api/content", tags=["content"])
+
 
 class ContentUpdateInfo(BaseModel):
     key: str
     value: str
 
+
 class ContentBatchUpdate(BaseModel):
     items: List[ContentUpdateInfo]
 
+
 @router.get("/")
-def get_all_content(db: Session = Depends(get_db)):
-    content = db.query(SiteContent).all()
-    # return as dictionary for easy frontend parsing key:value
-    return {item.key: item.value for item in content}
+async def get_all_content():
+    docs = await site_content_collection.find().to_list(200)
+    return {doc["key"]: doc["value"] for doc in docs}
+
 
 @router.put("/")
-def update_content(data: ContentBatchUpdate, db: Session = Depends(get_db), admin=Depends(require_admin)):
+async def update_content(data: ContentBatchUpdate, _admin=Depends(require_admin)):
     for item in data.items:
-        record = db.query(SiteContent).filter(SiteContent.key == item.key).first()
-        if record:
-            record.value = item.value
+        existing = await site_content_collection.find_one({"key": item.key})
+        if existing:
+            await site_content_collection.update_one(
+                {"key": item.key}, {"$set": {"value": item.value}}
+            )
         else:
-            new_record = SiteContent(section="general", key=item.key, value=item.value)
-            db.add(new_record)
-    db.commit()
+            content_id = await get_next_sequence("site_content")
+            await site_content_collection.insert_one({
+                "id": content_id,
+                "section": "general",
+                "key": item.key,
+                "value": item.value,
+            })
     return {"message": "Content updated successfully"}

@@ -1,15 +1,20 @@
+"""
+Upload routes — file upload to local static directory (unchanged logic, just admin guard).
+"""
+
 import os
 import shutil
 from uuid import uuid4
 from fastapi import APIRouter, Depends, File, UploadFile, HTTPException
-from sqlalchemy.orm import Session
+
+from app.core.database import product_media_collection
 from app.core.security import require_admin
-from app.core.database import get_db
-from app.models.domain import ProductMedia
 
 router = APIRouter(prefix="/api/upload", tags=["upload"])
 
-UPLOAD_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "uploads")
+UPLOAD_DIR = os.path.join(
+    os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "static", "uploads"
+)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 VALID_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".mp4", ".mov"}
@@ -17,10 +22,7 @@ VIDEO_EXTENSIONS = {".mp4", ".mov"}
 
 
 @router.post("/")
-async def upload_file(
-    file: UploadFile = File(...),
-    _admin=Depends(require_admin),
-):
+async def upload_file(file: UploadFile = File(...), _admin=Depends(require_admin)):
     """Upload a single media file. Returns the URL and detected media type."""
     ext = os.path.splitext(file.filename or "")[1].lower()
 
@@ -30,7 +32,6 @@ async def upload_file(
             detail="Invalid file type. Allowed: JPG, PNG, WEBP, MP4, MOV.",
         )
 
-    # UUID filename prevents collisions and path-traversal
     unique_name = f"{uuid4().hex}{ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_name)
 
@@ -42,21 +43,15 @@ async def upload_file(
 
 
 @router.delete("/media/{media_id}")
-async def delete_media(
-    media_id: int,
-    _admin=Depends(require_admin),
-    db: Session = Depends(get_db),
-):
+async def delete_media(media_id: int, _admin=Depends(require_admin)):
     """Delete a product media entry and its physical file."""
-    media = db.query(ProductMedia).filter(ProductMedia.id == media_id).first()
+    media = await product_media_collection.find_one({"id": media_id})
     if not media:
         raise HTTPException(status_code=404, detail="Media not found")
 
-    # Try to remove the physical file
-    file_path = os.path.join(UPLOAD_DIR, os.path.basename(media.url))
+    file_path = os.path.join(UPLOAD_DIR, os.path.basename(media["url"]))
     if os.path.exists(file_path):
         os.remove(file_path)
 
-    db.delete(media)
-    db.commit()
+    await product_media_collection.delete_one({"id": media_id})
     return {"detail": "Media deleted"}

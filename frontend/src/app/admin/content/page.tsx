@@ -26,7 +26,7 @@ export default function AdminContent() {
       
       // Defaults for media toggle
       if (initial["show_video"] === undefined) initial["show_video"] = "true";
-      if (!initial["ritual_embed_url"]) initial["ritual_embed_url"] = "https://www.instagram.com/reel/DU_VuD2klkT/embed";
+      if (!initial["ritual_embed_url"]) initial["ritual_embed_url"] = "";
       
       setContent(initial);
     } catch (err) { console.error(err); }
@@ -136,7 +136,7 @@ export default function AdminContent() {
               <div className="flex flex-col gap-2">
                 <label className="text-xs tracking-widest text-foreground/80 block">Ritual Media URL</label>
                 <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                  <input type="text" placeholder="https://www.instagram.com/reel/.../embed" value={content["ritual_embed_url"] || ""} onChange={(e) => handleChange("ritual_embed_url", e.target.value)}
+                  <input type="text" placeholder="Paste video URL (.mp4, YouTube, Vimeo, Instagram Reel)" value={content["ritual_embed_url"] || ""} onChange={(e) => handleChange("ritual_embed_url", e.target.value)}
                     className="w-full sm:flex-1 border-b border-foreground/20 py-2 bg-transparent focus:outline-none focus:border-foreground transition-colors" />
                   
                   <div className="relative">
@@ -146,7 +146,7 @@ export default function AdminContent() {
                     </label>
                   </div>
                 </div>
-                <p className="text-[10px] text-primary/60 mt-1">Paste an Instagram Embed URL, a direct .mp4/.jpg link, or upload a file from your device.</p>
+                <p className="text-[10px] text-primary/60 mt-1">Paste a direct video link (.mp4, .webm), YouTube/Vimeo URL, Instagram Reel URL, or upload a file from your device.</p>
               </div>
             )}
           </div>
